@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import routes from "../Routes/routes";
+import routes from "../routes/routes";
 import { useAuth } from "../contexts/auth/AuthContext";
 import * as Popover from "@radix-ui/react-popover";
 
@@ -21,7 +21,7 @@ function Header() {
       <div className="max-w-screen-xl mx-auto flex justify-between items-center h-20 border-b border-gray-300 px-8">
         {isAuthenticated ? (
           <Link
-            to={routes.home}
+            to={routes.todoapp}
             className="flex items-center text-xl font-extrabold gap-2 text-[#02afae]"
           >
             <img
@@ -95,6 +95,19 @@ function Header() {
                     className="block w-full text-left text-gray-700 hover:bg-sky-100 hover:text-sky-800 rounded px-3 py-2 transition"
                   >
                     Danh sách TODO
+                  </Link>
+
+                  <Link
+                    to="/verify-account"
+                    className="block w-full text-left text-gray-700 hover:bg-sky-100 hover:text-sky-800 rounded px-3 py-2 transition"
+                  >
+                    Xác thực tài khoản
+                  </Link>
+                  <Link
+                    to="/change-password"
+                    className="block w-full text-left text-gray-700 hover:bg-sky-100 hover:text-sky-800 rounded px-3 py-2 transition"
+                  >
+                    Đổi mật khẩu
                   </Link>
 
                   <button

@@ -3,6 +3,7 @@ import { data, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/auth/AuthContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
+import routes from "../routes/routes";
 
 function SignIn(): JSX.Element {
   const { actions } = useAuth();
@@ -24,10 +25,10 @@ function SignIn(): JSX.Element {
       return;
     }
 
-    navigate("/todoapp");
+    if (result.success) {
+      navigate("/todoapp");
+    }
   };
-
-  console.log(data);
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gray-300">
@@ -50,7 +51,7 @@ function SignIn(): JSX.Element {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#00f2fe]"
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#02afae]"
               required
             />
           </div>
@@ -68,7 +69,7 @@ function SignIn(): JSX.Element {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#00f2fe]"
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#02afae]"
               required
             />
             {password.length > 0 && (
@@ -94,15 +95,18 @@ function SignIn(): JSX.Element {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-gray-600">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-[#049da5] hover:underline">
-            Sign Up
+        <p className=" mt-4 text-center">
+          <Link
+            to={routes.forgotPassword}
+            className="text-[#049da5] hover:underline"
+          >
+            Forgot password
           </Link>
         </p>
-        <p className="text-center">
-          <Link to="/forgot" className="text-[#049da5] hover:underline">
-            Forgot password
+        <p className="text-center text-gray-600">
+          Don't have an account?{" "}
+          <Link to={routes.signup} className="text-[#049da5] hover:underline">
+            Sign Up
           </Link>
         </p>
       </div>

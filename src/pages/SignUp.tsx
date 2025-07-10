@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../contexts/auth/AuthContext";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import routes from "../routes/routes";
 
 function SignUp(): JSX.Element {
   const { actions } = useAuth();
@@ -146,7 +147,7 @@ function SignUp(): JSX.Element {
 
         <p className="mt-4 text-center text-gray-600">
           Already have an account?{" "}
-          <Link to="/signin" className="text-[#02afae] hover:underline">
+          <Link to={routes.signin} className="text-[#02afae] hover:underline">
             Sign In
           </Link>
         </p>

@@ -5,6 +5,7 @@ interface User {
   _id: string;
   name: string;
   email: string;
+  verified?: boolean;
 }
 
 interface AuthContextProps {
@@ -12,17 +13,40 @@ interface AuthContextProps {
   isAuthenticated: boolean;
   isLoading: boolean;
   actions: {
+    validate: () => Promise<User | null>;
     signup: (credentials: {
       name: string;
       email: string;
       password: string;
       confirmPassword: string;
-    }) => Promise<string | undefined>;
+    }) => Promise<{ success: boolean; message?: string }>;
     signin: (credentials: {
       email: string;
       password: string;
-    }) => Promise<string | undefined>;
+    }) => Promise<{ success: boolean; verified?: boolean; message?: string }>;
     signout: () => Promise<string | void>;
+    sendVerificationCode: (credentials: {
+      email: string;
+    }) => Promise<string | undefined>;
+    verifyVerificationCode: (credentials: {
+      email: string;
+      providedCode: string;
+    }) => Promise<boolean>;
+
+    changePassword: (credentials: {
+      oldPassword: string;
+      newPassword: string;
+    }) => Promise<string | undefined>;
+
+    sendForgotPasswordCode: (credentials: {
+      email: string;
+    }) => Promise<string | undefined>;
+    verifyForgotPasswordCode: (credentials: {
+      email: string;
+      providedCode: string;
+      newPassword: string;
+      confirmPassword: string;
+    }) => Promise<boolean>;
   };
 }
 

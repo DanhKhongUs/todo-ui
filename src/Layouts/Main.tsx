@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router-dom";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
-import routes from "../Routes/routes";
+import routes from "../routes/routes";
 
 function Main() {
   return (
