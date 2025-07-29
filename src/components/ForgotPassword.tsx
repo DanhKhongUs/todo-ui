@@ -1,11 +1,14 @@
 import { FormEvent, useState } from "react";
 import { useAuth } from "../contexts/auth/AuthContext";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 function ForgotPassword() {
   const { actions } = useAuth();
 
-  const [step, setStep] = useState<1 | 2>(1);
+  const navigate = useNavigate();
+
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [email, setEmail] = useState<string>("");
   const [providedCode, setProvidedCode] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
@@ -26,34 +29,61 @@ function ForgotPassword() {
 
     if (!error) {
       setStep(2);
+    } else {
+      toast.error("Send code false!");
     }
   };
 
   const handleVerifyCode = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!providedCode || !newPassword || !confirmPassword) {
-      toast.error("All fields are required.");
+    if (!providedCode) return toast.error("Please enter verification code!");
+
+    setIsLoading(true);
+    const success = await actions.checkForgotPasswordCode({
+      email,
+      providedCode,
+    });
+    setIsLoading(false);
+    if (success) {
+      toast.success("Password changed successfully.");
+      setStep(3);
+    } else {
+      toast.error("Invalid or expired verification code!");
+    }
+  };
+
+  const handleResetPassword = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!newPassword || !confirmPassword) return;
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match!");
       return;
     }
 
     setIsLoading(true);
-    const success = await actions.verifyForgotPasswordCode({
+    const success = await actions.resetPasswordWithCode({
       email,
       providedCode,
       newPassword,
       confirmPassword,
     });
+
     setIsLoading(false);
+
     if (success) {
-      toast.success("Password changed successfully.");
-      setStep(1);
+      toast.success("Password has been updated!");
+      navigate("/signin");
+    } else {
+      toast.error("Failed to reset password.");
     }
   };
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border rounded-xl shadow-md bg-white">
-      {step === 1 ? (
+      {step === 1 && (
         <form onSubmit={handleSendCode} className="space-y-4">
           <h2 className="text-xl font-semibold text-center">Quên mật khẩu</h2>
           <input
@@ -71,18 +101,13 @@ function ForgotPassword() {
             {isLoading ? "Đang gửi mã..." : "Gửi mã xác thực"}
           </button>
         </form>
-      ) : (
+      )}
+
+      {step === 2 && (
         <form onSubmit={handleVerifyCode} className="space-y-4">
           <h2 className="text-xl font-semibold text-center">
-            Nhập mã xác nhận
+            Nhập mã xác thực
           </h2>
-          <button
-            className="hover:underline ml-2 text-gray-800 cursor-pointer"
-            type="button"
-            onClick={() => setStep(1)}
-          >
-            Quay Lại
-          </button>
           <input
             type="text"
             placeholder="Mã xác thực"
@@ -90,7 +115,28 @@ function ForgotPassword() {
             value={providedCode}
             onChange={(e) => setProvidedCode(e.target.value)}
           />
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700"
+          >
+            {isLoading ? "Đang xác minh..." : "Xác minh mã"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className="text-blue-500 underline text-sm"
+          >
+            Quay lại bước trước
+          </button>
+        </form>
+      )}
 
+      {step === 3 && (
+        <form onSubmit={handleResetPassword} className="space-y-4">
+          <h2 className="text-xl font-semibold text-center">
+            Đặt lại mật khẩu
+          </h2>
           <input
             type="password"
             placeholder="Mật khẩu mới"
@@ -110,14 +156,7 @@ function ForgotPassword() {
             disabled={isLoading}
             className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
           >
-            {isLoading ? "Đang xác minh..." : "Xác nhận đổi mật khẩu"}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSendCode}
-            className="text-blue-500 underline text-sm"
-          >
-            Gửi lại mã
+            {isLoading ? "Đang cập nhật..." : "Xác nhận mật khẩu mới"}
           </button>
         </form>
       )}

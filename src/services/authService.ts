@@ -1,67 +1,37 @@
+import axios from "axios";
 import httpRequest from "../utils/httpRequest";
 
-interface SignUpData {
-  name: string;
+interface Data {
   email: string;
-  password: string;
-  confirmPassword: string;
-}
-
-interface SignInData {
-  email: string;
-  password: string;
+  name?: string;
+  password?: string;
+  confirmPassword?: string;
+  newPassword?: string;
+  providedCode?: string;
 }
 
 interface ChangePasswordData {
-  oldPassword: string;
-  newPassword: string;
-}
-
-interface VerificationData {
-  email: string;
-  providedCode: string;
-}
-
-interface SendVerificationData {
-  email: string;
-}
-
-interface SendForgotPasswordData {
-  email: string;
-}
-
-interface VerifyForgotPasswordData {
-  email: string;
-  providedCode: string;
-  newPassword: string;
-  confirmPassword: string;
+  oldPassword?: string;
+  newPassword?: string;
 }
 
 export const validate = async () => {
-  const token = localStorage.getItem("token");
-
   const { data } = await httpRequest.get("/auth/validate", {
     withCredentials: true,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
   return data;
 };
 
-export const signup = async (data: SignUpData) => {
+export const signup = async (data: Data) => {
   return (
     await httpRequest.post("/auth/signup", data, { withCredentials: true })
   ).data;
 };
 
-export const signin = async (data: SignInData) => {
+export const signin = async (data: Data) => {
   const res = await httpRequest.post("/auth/signin", data, {
     withCredentials: true,
   });
-  if (res.data?.token) {
-    localStorage.setItem("token", res.data.token);
-  }
 
   return res.data;
 };
@@ -76,7 +46,7 @@ export const signout = async () => {
   return data;
 };
 
-export const sendVerificationCode = async (data: SendVerificationData) => {
+export const sendVerificationCode = async (data: Data) => {
   return (
     await httpRequest.patch("/auth/send-verification-code", data, {
       withCredentials: true,
@@ -84,7 +54,7 @@ export const sendVerificationCode = async (data: SendVerificationData) => {
   ).data;
 };
 
-export const verifyVerificationCode = async (data: VerificationData) => {
+export const verifyVerificationCode = async (data: Data) => {
   return (
     await httpRequest.patch("/auth/verify-verification-code", data, {
       withCredentials: true,
@@ -96,26 +66,29 @@ export const changePassword = async (data: ChangePasswordData) => {
   return (
     await httpRequest.patch("/auth/change-password", data, {
       withCredentials: true,
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
     })
   ).data;
 };
 
-export const sendForgotPasswordCode = async (data: SendForgotPasswordData) => {
+export const sendForgotPasswordCode = async (data: Data) => {
   return (
-    await httpRequest.patch("auth/send-forgot-password-code", data, {
+    await httpRequest.patch("/auth/send-forgot-password-code", data, {
       withCredentials: true,
     })
   ).data;
 };
 
-export const verifyForgotPasswordCode = async (
-  data: VerifyForgotPasswordData
-) => {
+export const checkForgotPasswordCode = async (data: Data) => {
   return (
-    await httpRequest.patch("auth/verify-forgot-password-code", data, {
+    await httpRequest.patch("/auth/check-forgot-password-code", data, {
+      withCredentials: true,
+    })
+  ).data;
+};
+
+export const resetPasswordWithCode = async (data: Data) => {
+  return (
+    await httpRequest.patch("/auth/reset-password-with-code", data, {
       withCredentials: true,
     })
   ).data;

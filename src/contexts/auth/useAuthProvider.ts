@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as authAPI from "../../services/authService";
 import { toast } from "react-toastify";
 
@@ -18,41 +18,18 @@ interface User {
   verified?: boolean;
 }
 
-interface SignUpCredentials {
-  name: string;
+interface Credentials {
   email: string;
-  password: string;
-  confirmPassword: string;
-}
-
-interface AuthCredentials {
-  email: string;
-  password: string;
+  password?: string;
+  name?: string;
+  confirmPassword?: string;
+  newPassword?: string;
+  providedCode?: string;
 }
 
 interface ChangePasswordCredentials {
   oldPassword: string;
   newPassword: string;
-}
-
-interface SendVerificationCodeCredentials {
-  email: string;
-}
-
-interface VerifyVerificationCodeCredentials {
-  email: string;
-  providedCode: string;
-}
-
-interface SendForgotPasswordCredentials {
-  email: string;
-}
-
-interface VerifyForgotPasswordCredentials {
-  email: string;
-  providedCode: string;
-  newPassword: string;
-  confirmPassword: string;
 }
 
 // === Hook useAuthProvider ===
@@ -62,17 +39,20 @@ export const useAuthProvider = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const justSignedOut = useRef(false);
   // Validate user on initial load
   useEffect(() => {
-    const fetchAuth = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setIsAuthenticated(false);
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
+    // Nếu signout thì bỏ qua validate
 
+    if (justSignedOut.current) {
+      justSignedOut.current = false;
+      setIsAuthenticated(false);
+      setUser(null);
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchAuth = async () => {
       try {
         setIsLoading(true);
         const data: APIResponse<User> = await authAPI.validate();
@@ -119,9 +99,7 @@ export const useAuthProvider = () => {
     }
   };
 
-  const signup = async (
-    credentials: SignUpCredentials
-  ): Promise<{ success: boolean; message?: string }> => {
+  const signup = async (credentials: Credentials) => {
     try {
       const data: APIResponse<User> = await authAPI.signup(credentials);
 
@@ -139,19 +117,13 @@ export const useAuthProvider = () => {
     }
   };
 
-  const signin = async (
-    credentials: AuthCredentials
-  ): Promise<{ success: boolean; verified?: boolean; message?: string }> => {
+  const signin = async (credentials: Credentials) => {
     try {
       const data: APIResponse<User> = await authAPI.signin(credentials);
 
       if (!data.success) {
         toast.error(data.message || "Signin failed.");
         return { success: false, message: data.message || "Signin failed." };
-      }
-
-      if (data.token) {
-        localStorage.setItem("token", data.token);
       }
 
       // Gọi validate sau khi đăng nhập để lấy user chuẩn nhất
@@ -171,7 +143,7 @@ export const useAuthProvider = () => {
     }
   };
 
-  const signout = async (): Promise<string | void> => {
+  const signout = async () => {
     try {
       const data: APIResponse<User> = await authAPI.signout();
 
@@ -180,6 +152,7 @@ export const useAuthProvider = () => {
         return data.message;
       }
 
+      justSignedOut.current = true; // Đánh giấu vừa signout
       setIsAuthenticated(false);
       setUser(null);
       toast.success("SignOut successful.");
@@ -190,9 +163,7 @@ export const useAuthProvider = () => {
     }
   };
 
-  const sendVerificationCode = async (
-    credentials: SendVerificationCodeCredentials
-  ): Promise<string | undefined> => {
+  const sendVerificationCode = async (credentials: Credentials) => {
     try {
       const data: APIResponse<User> = await authAPI.sendVerificationCode(
         credentials
@@ -211,9 +182,7 @@ export const useAuthProvider = () => {
     }
   };
 
-  const verifyVerificationCode = async (
-    credentials: VerifyVerificationCodeCredentials
-  ): Promise<boolean> => {
+  const verifyVerificationCode = async (credentials: Credentials) => {
     try {
       const data: APIResponse<User> = await authAPI.verifyVerificationCode(
         credentials
@@ -222,10 +191,6 @@ export const useAuthProvider = () => {
       if (!data.success) {
         toast.error(data.message || "Verification code failed.");
         return false;
-      }
-
-      if (data.token) {
-        localStorage.setItem("token", data.token);
       }
 
       const validated = await authAPI.validate();
@@ -243,19 +208,13 @@ export const useAuthProvider = () => {
     }
   };
 
-  const changePassword = async (
-    credentials: ChangePasswordCredentials
-  ): Promise<string | undefined> => {
+  const changePassword = async (credentials: ChangePasswordCredentials) => {
     try {
       const data: APIResponse<User> = await authAPI.changePassword(credentials);
 
       if (!data.success) {
         toast.error(data.message || "Change password failed.");
         return data.message;
-      }
-
-      if (data.token) {
-        localStorage.setItem("token", data.token);
       }
 
       const validated = await authAPI.validate();
@@ -276,9 +235,7 @@ export const useAuthProvider = () => {
     }
   };
 
-  const sendForgotPasswordCode = async (
-    credentials: SendForgotPasswordCredentials
-  ): Promise<string | undefined> => {
+  const sendForgotPasswordCode = async (credentials: Credentials) => {
     try {
       const data: APIResponse<User> = await authAPI.sendForgotPasswordCode(
         credentials
@@ -297,9 +254,21 @@ export const useAuthProvider = () => {
     }
   };
 
-  const verifyForgotPasswordCode = async (
-    credentials: VerifyForgotPasswordCredentials
-  ): Promise<boolean> => {
+  const checkForgotPasswordCode = async (credentials: Credentials) => {
+    try {
+      const data: APIResponse<User> = await authAPI.checkForgotPasswordCode(
+        credentials
+      );
+      if (!data.success) return false;
+
+      return true;
+    } catch (error) {
+      console.error("Check Forgot Password Code Error:", error);
+      return false;
+    }
+  };
+
+  const resetPasswordWithCode = async (credentials: Credentials) => {
     const { newPassword, confirmPassword } = credentials;
 
     if (newPassword !== confirmPassword) {
@@ -308,22 +277,13 @@ export const useAuthProvider = () => {
     }
 
     try {
-      const data: APIResponse<User> = await authAPI.verifyForgotPasswordCode(
+      const data: APIResponse<User> = await authAPI.resetPasswordWithCode(
         credentials
       );
       if (!data.success) {
         return false;
       }
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-      }
 
-      const validated = await authAPI.validate();
-      if (validated.success && validated.user) {
-        setUser(validated.user);
-      }
-      setIsAuthenticated(true);
-      toast.success("Password updated successfully.");
       return true;
     } catch (error) {
       console.error("Verify Forgot Password Code Error:", error);
@@ -344,7 +304,8 @@ export const useAuthProvider = () => {
       verifyVerificationCode,
       changePassword,
       sendForgotPasswordCode,
-      verifyForgotPasswordCode,
+      checkForgotPasswordCode,
+      resetPasswordWithCode,
     },
   };
 };

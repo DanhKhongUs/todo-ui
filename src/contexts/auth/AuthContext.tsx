@@ -41,7 +41,13 @@ interface AuthContextProps {
     sendForgotPasswordCode: (credentials: {
       email: string;
     }) => Promise<string | undefined>;
-    verifyForgotPasswordCode: (credentials: {
+
+    checkForgotPasswordCode: (credentials: {
+      email: string;
+      providedCode: string;
+    }) => Promise<boolean>;
+
+    resetPasswordWithCode: (credentials: {
       email: string;
       providedCode: string;
       newPassword: string;
