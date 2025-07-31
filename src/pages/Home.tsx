@@ -1,7 +1,7 @@
 import Header from "../Layouts/Header";
 import Main from "../Layouts/Main";
-import TodoApp from "./TodoApp";
 import { useAuth } from "../contexts/auth/AuthContext";
+import TodoAppPage from "./TodoAppPage";
 
 function Home() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -11,7 +11,7 @@ function Home() {
   return (
     <>
       <Header />
-      <div>{isAuthenticated ? <TodoApp /> : <Main />}</div>
+      <div>{isAuthenticated ? <TodoAppPage /> : <Main />}</div>
     </>
   );
 }

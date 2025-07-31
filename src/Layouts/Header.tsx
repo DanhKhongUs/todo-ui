@@ -98,7 +98,7 @@ function Header() {
                   </Link>
 
                   <Link
-                    to="/verify-account"
+                    to="/email-verification"
                     className="block w-full text-left text-gray-700 hover:bg-sky-100 hover:text-sky-800 rounded px-3 py-2 transition"
                   >
                     Xác thực tài khoản
